@@ -19,9 +19,26 @@ world.loadGraph(roomGraph)
 world.printRooms()
 player = Player("Name", world.startingRoom)
 
+from my_utils import *
+
+min_save_threshold = 960
+min_hurdle = 960
+while min_hurdle > 959:
+    traversalPath, mm = dfs_random(world, how = 'chooser',parent_graph=roomGraph)
+    print(f'******{len(traversalPath)}************min so far is {min_save_threshold}')
+    if len(traversalPath) < min_save_threshold:
+        f = open("paths_best.txt","w")
+        f.write( str(traversalPath) )
+        f.close()
+        min_save_threshold = len(traversalPath)
+
+    if len(traversalPath)< min_hurdle:
+        min_hurdle = len(traversalPath)
+
+
 
 # FILL THIS IN
-traversalPath = ['n', 's']
+#traversalPath = ['n', 's']
 
 
 # TRAVERSAL TEST

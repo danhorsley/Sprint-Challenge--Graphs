@@ -182,3 +182,119 @@ def create_starting_map(world):
     exit_dict[e] = '?'
   my_map.vertices[player.currentRoom.id] = exit_dict
   return my_map,player
+
+
+def pop_map_on_move(my_map,world,player,move):
+  reverse_dir ={'n':'s','s':'n','w':'e','e':'w'}
+  old_room = player.currentRoom.id
+  player.travel(move)
+  new_room = player.currentRoom.id
+  if new_room not in my_map.vertices:
+    exit_dict = {}
+    for exits in player.currentRoom.getExits():
+        for e in exits:
+          exit_dict[e] = '?'
+    my_map.vertices[new_room] = exit_dict
+  my_map.vertices[old_room][move] = new_room
+  reverse_move = reverse_dir[move]
+  my_map.vertices[new_room][reverse_move] = old_room
+
+def count_unmapped(my_map):
+  counter = 0
+  for val1 in my_map.vertices.values():
+    for val2 in val1.values():
+      if val2=='?':
+        counter += 1
+  return counter
+
+def bfs_for_q(my_map,player):
+  room = player.currentRoom.id
+  q = Queue()
+  q.enqueue([room])
+  
+  room = player.currentRoom.id
+  q = Queue()
+  q.enqueue([room])
+  while '?' not in my_map.vertices[room].values(): 
+    
+    joins = my_map.vertices[room]
+    for j in joins.values():
+      if j in q.queue[0]:
+        pass
+      else:
+        _ = [x for x in q.queue[0]]
+        _.append(j)
+        q.enqueue(_)
+    q.dequeue()
+    room = q.queue[0][-1]
+
+  return q.queue[0]
+
+def get_dirs(my_map,traversal):
+  point = traversal[0]
+  dir_list = []
+  for t in traversal[1:]:
+    for key in my_map.vertices[point]:
+      if my_map.vertices[point][key]==t:
+        dir_list.append(key)
+    point = t
+  return dir_list
+
+def dfs_random(world, parent_graph, how='random'):
+  my_map, player = create_starting_map(world)
+  unmapped_number = count_unmapped(my_map)
+  moves = []
+  while unmapped_number > 0:
+    room = player.currentRoom.id
+    unvisited_exits = [x for x in my_map.vertices[room] if my_map.vertices[room][x]=='?']
+    if unvisited_exits !=[]:
+      if how =='random':
+        move = random.choice(unvisited_exits)
+      elif how =='chooser':
+        if len(unvisited_exits)==1:
+            move = unvisited_exits[0]
+        else:
+            rg = roomgraph_to_graph(parent_graph)
+            flc = find_longest_clique(room,rg,list(my_map.vertices.keys()) )
+            #print(flc, type(rg.vertices),rg.vertices[room],unvisited_exits,room)
+            for m in unvisited_exits:
+                if m in  parent_graph[room][1].keys() and parent_graph[room][1][m] ==flc[-1]:
+                    move = m
+            #print('chooser move',move,flc)
+      moves.append(move)
+      pop_map_on_move(my_map,world,player,move)
+      unmapped_number = count_unmapped(my_map)
+    else:   
+      #print('back track on') 
+      backtrack = bfs_for_q(my_map,player)
+      #print('backtrack is', backtrack)
+      backtrack_dirs = get_dirs(my_map,backtrack)
+      for item in backtrack_dirs:
+        moves.append(item)
+        player.travel(item)
+  
+  return moves, my_map.vertices
+
+def find_longest_clique(node,parent_graph,visited = []):
+  joins = parent_graph.vertices[node]
+  joins = [x for x in joins if x not in visited]
+  join_dict = {}
+  for j in joins:
+    new_graph = Graph()
+    exclude_list = [y for y in joins if y!=j]
+    new_node_list = [x for x in parent_graph.vertices if x not in visited or exclude_list]
+    for nn in new_node_list:
+      new_graph.vertices[nn] = set([z for z in parent_graph.vertices[nn] if z not in (visited+exclude_list)])
+    join_dict[j] = len(new_graph.bft(j))
+  ret = sorted(join_dict.items(), key=lambda kv: kv[1],reverse=True)
+  ret = [x[0] for x in ret]
+  return ret
+
+def roomgraph_to_graph(rg):
+  my_graph = Graph()
+  connection_strip = {}
+  for key in rg:
+    my_graph.add_vertex(key)
+    connection_strip[key] = set(rg[key][1].values())
+  my_graph.vertices = connection_strip
+  return my_graph
