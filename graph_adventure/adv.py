@@ -21,10 +21,10 @@ player = Player("Name", world.startingRoom)
 
 from my_utils import *
 
-min_save_threshold = 960
-min_hurdle = 960
-while min_hurdle > 959:
-    traversalPath, mm = dfs_random(world, how = 'chooser',parent_graph=roomGraph)
+min_save_threshold = 925
+min_hurdle = 925
+while min_hurdle > 924:
+    traversalPath, mm = dfs_random(world, how = 'chooserrandom',parent_graph=roomGraph)
     print(f'******{len(traversalPath)}************min so far is {min_save_threshold}')
     if len(traversalPath) < min_save_threshold:
         f = open("paths_best.txt","w")

@@ -250,12 +250,12 @@ def dfs_random(world, parent_graph, how='random'):
     if unvisited_exits !=[]:
       if how =='random':
         move = random.choice(unvisited_exits)
-      elif how =='chooser':
+      elif how[:7] =='chooser':
         if len(unvisited_exits)==1:
             move = unvisited_exits[0]
         else:
             rg = roomgraph_to_graph(parent_graph)
-            flc = find_longest_clique(room,rg,list(my_map.vertices.keys()) )
+            flc = find_longest_clique(room,rg,list(my_map.vertices.keys()),how=how )
             #print(flc, type(rg.vertices),rg.vertices[room],unvisited_exits,room)
             for m in unvisited_exits:
                 if m in  parent_graph[room][1].keys() and parent_graph[room][1][m] ==flc[-1]:
@@ -275,7 +275,7 @@ def dfs_random(world, parent_graph, how='random'):
   
   return moves, my_map.vertices
 
-def find_longest_clique(node,parent_graph,visited = []):
+def find_longest_clique(node,parent_graph,visited = [], how='chooser'):
   joins = parent_graph.vertices[node]
   joins = [x for x in joins if x not in visited]
   join_dict = {}
@@ -287,6 +287,14 @@ def find_longest_clique(node,parent_graph,visited = []):
       new_graph.vertices[nn] = set([z for z in parent_graph.vertices[nn] if z not in (visited+exclude_list)])
     join_dict[j] = len(new_graph.bft(j))
   ret = sorted(join_dict.items(), key=lambda kv: kv[1],reverse=True)
+  #print(ret)
+  if how == 'chooserrandom':
+      if len(ret)>1:
+        #if abs(ret[-1][1] - ret[-2][1])<3:
+        if ret[-1][1]>40:
+            swap = random.sample([ret[-1],ret[-2]],2)
+            ret[-1] = swap[0]
+            ret[-2] = swap[1]
   ret = [x[0] for x in ret]
   return ret
 
