@@ -1,4 +1,7 @@
 import random
+from room import Room
+from player import Player
+from world import World
 
 class Queue():
     def __init__(self):
@@ -169,3 +172,13 @@ class Graph:
           #s.pop()
 
         return s.stack[-1]
+
+def create_starting_map(world):
+  my_map = Graph()
+  player = Player("Name", world.startingRoom)
+  exits = player.currentRoom.getExits()
+  exit_dict = {}
+  for e in exits:
+    exit_dict[e] = '?'
+  my_map.vertices[player.currentRoom.id] = exit_dict
+  return my_map,player
